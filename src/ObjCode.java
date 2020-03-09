@@ -1,6 +1,4 @@
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -37,7 +35,8 @@ public class ObjCode {
     public void readFile()
     {
         try{
-            fileInputStream = new FileInputStream("src/file.txt");
+            File file = new File("file.txt");
+            fileInputStream = new FileInputStream(file);
             inputStreamReader = new InputStreamReader(fileInputStream);
 
             while(inputStreamReader.read() != 0)
