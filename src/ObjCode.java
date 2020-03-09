@@ -1,4 +1,5 @@
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -31,5 +32,25 @@ public class ObjCode {
         this.operand = new ArrayList<>();
         this.objectCode = new ArrayList<>();
         this.operationOperand = new HashMap<>();
+    }
+
+    public void readFile()
+    {
+        try{
+            fileInputStream = new FileInputStream("src/file.txt");
+            inputStreamReader = new InputStreamReader(fileInputStream);
+
+            while(inputStreamReader.read() != 0)
+            {
+                System.out.println(inputStreamReader.read());
+
+            }
+
+
+        }catch(IOException e)
+        {
+            System.out.println("Error in file reading");
+            System.out.println(e.getMessage());
+        }
     }
 }
