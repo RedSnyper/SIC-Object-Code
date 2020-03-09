@@ -43,9 +43,16 @@ public class ObjCode {
             inputStreamReader = new InputStreamReader(fileInputStream);
             bufferedReader = new BufferedReader(inputStreamReader);
             Scanner input = new Scanner(file);
+            String a;
+            {
+                System.out.println("-------------------------------READING FROM FILE-----------------------------------");
+                while((a=bufferedReader.readLine())!=null)
+                    System.out.println(a);
+                System.out.println("-----------------------------------------------------------------------------------");
+            }
             int count=0;
-            while(input.hasNext()==true) {
 
+            while(input.hasNext()==true) {
                String message = input.next();
                 {
                     if (count % 3 == 0) {
@@ -60,7 +67,6 @@ public class ObjCode {
                     }
                 }
                 count++;
-
             }
             System.out.println(Arrays.toString(label.toArray()));
             System.out.println(Arrays.toString(instruction.toArray()));
