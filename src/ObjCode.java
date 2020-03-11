@@ -16,16 +16,13 @@ public class ObjCode {
     private ArrayList<String> locationValue;
     private ArrayList<String> label;
     private ArrayList<String> instruction;
-    private HashMap<String, String> onePassValue;
-    private HashMap<String, String> locOperandValue = new HashMap<>();
+    private HashMap<String, String> locOperandValue;
     private ArrayList<String> operand;
-    private ArrayList<String> opCodeList = new ArrayList<>();
+    private Scanner input;
+   // private ArrayList<String> opCodeList;
     private ArrayList<String> objectCode;
     private String opCodeValue;
     private String operandCodeValue;
-
-
-    private HashMap<ArrayList, ArrayList> operationOperand;
 
     public ObjCode() {
         this.mnenomicMapping = new HashMap<>();
@@ -38,27 +35,25 @@ public class ObjCode {
         this.locationValue = new ArrayList<>();
         this.label = new ArrayList<>();
         this.instruction = new ArrayList<>();
-        this.onePassValue = new HashMap<>();
         this.operand = new ArrayList<>();
         this.objectCode = new ArrayList<>();
-        this.operationOperand = new HashMap<>();
         this.locOperandValue = new HashMap<>();
-        this.opCodeList = new ArrayList<>();
+     //   this.opCodeList = new ArrayList<>();
     }
 
-    public void readFile() {
+    public void readFile() throws IOException {
         try {
             File file = new File("file.txt");
             fileInputStream = new FileInputStream(file);
             inputStreamReader = new InputStreamReader(fileInputStream);
             bufferedReader = new BufferedReader(inputStreamReader);
-            Scanner input = new Scanner(file);
+            input = new Scanner(file);
             String a;
             {
-                System.out.println("-------------------------------READING FROM FILE-----------------------------------");
+                System.out.println("-------------------------------READING FROM FILE-----------------------------------------------------");
                 while ((a = bufferedReader.readLine()) != null)
                     System.out.println(a);
-                System.out.println("-----------------------------------------------------------------------------------");
+                System.out.println("----------------------------------------------------------------------------------------------------");
             }
             int count = 0;
 
@@ -73,20 +68,23 @@ public class ObjCode {
 
                     } else if (count % 3 == 2) {
                         operand.add(message);
-
                     }
                 }
                 count++;
             }
-            System.out.println(Arrays.toString(label.toArray()));
-            System.out.println(Arrays.toString(instruction.toArray()));
-            System.out.println(Arrays.toString(operand.toArray()));
+//            System.out.println(Arrays.toString(label.toArray()));
+//            System.out.println(Arrays.toString(instruction.toArray()));
+//            System.out.println(Arrays.toString(operand.toArray()));
         } catch (IOException e) {
             System.out.println("Error in file reading");
             System.out.println(e.getMessage());
+            fileInputStream.close();
+            inputStreamReader.close();
+            bufferedReader.close();
         } catch (Exception e) {
             System.out.println("error in Scanner input statement");
             System.out.println(e.getMessage());
+            input.close();
         }
     }
 
@@ -133,26 +131,24 @@ public class ObjCode {
 
         System.out.println("------------------------------------------ONE PASS ASSEMBLY----------------------------------------");
         for (int i = 0; i < instruction.size(); i++) {
-            System.out.println(locationValue.get(i) + "\t|\t" + label.get(i) + "\t|\t" + instruction.get(i) + "\t|\t" + operand.get(i));
-
+            System.out.println(String.format("%-10s %-10s %-10s %-10s ",locationValue.get(i) , label.get(i) , instruction.get(i) ,  operand.get(i)));
         }
         System.out.println("-----------------------------------------------------------------------------------------------------");
-        System.out.println(Arrays.toString(locationValue.toArray()));
+     //   System.out.println(Arrays.toString(locationValue.toArray()));
     }
 
     public void twoPassAssemble() {
-        opCodeList.add(LDA);
-        opCodeList.add(MUL);
-        opCodeList.add(DIV);
-        opCodeList.add(STA);
-        opCodeList.add(ADD);
-        System.out.println(Arrays.toString(opCodeList.toArray()));
-
+//        opCodeList.add(LDA);
+//        opCodeList.add(MUL);
+//        opCodeList.add(DIV);
+//        opCodeList.add(STA);
+//        opCodeList.add(ADD);
+       // System.out.println(Arrays.toString(opCodeList.toArray()));
 
         for (int i = 0; i < instruction.size(); i++) {
             locOperandValue.put(label.get(i), locationValue.get(i));
         }
-        System.out.println((locOperandValue.toString()));
+       // System.out.println((mnenomicMapping));
 
         for (int i = 0; i < instruction.size(); i++) {
             if (instruction.get(i).equals("START") || instruction.get(i).equals("RESW") || instruction.get(i).equals("END")) {
@@ -160,7 +156,15 @@ public class ObjCode {
                 operandCodeValue = "-";
                 objectCode.add(opCodeValue + operandCodeValue);
 
-            } else {
+            }else if(instruction.get(i).equals("WORD"))
+            {
+                int value = Integer.parseInt(operand.get(i));
+                if(value < 10)
+                    objectCode.add("000"+Integer.toHexString(value).toUpperCase());
+                else
+                    objectCode.add("00"+Integer.toHexString(value).toUpperCase());
+            }
+            else {
                 int j = 1;
                 while (!operand.get(i).equals(label.get(j))) {
                     if (j >= 11)
@@ -171,40 +175,39 @@ public class ObjCode {
                         j++;
                     }
                 }
-
-                int k = 0;
-                // System.out.println("okayyy" + instruction.get(i));
-                System.out.println(opCodeList.get(k));
-
                 for (Map.Entry<String, String> mnenomicValue : mnenomicMapping.entrySet())
-                //System.out.println("Key = " + entry.getKey() +
-                //        ", Value = " + entry.getValue());
                 {
-                    while (true) {
-//                        if (instruction.get(i).equals(opCodeList.get(k))) {
-//                            break;
-//                        } else {
                         if(!instruction.get(i).equals(mnenomicValue.getKey())) {
-                            i++;
-                            break;
-                        }else {
-
+                            continue;
+                            }
+                        else {
                             opCodeValue = mnenomicValue.getValue();
-                            //System.out.println(opCodeList.get(k));
-                            operandCodeValue = locationValue.get(i);
+                            operandCodeValue = locationValue.get(j);
                             objectCode.add(opCodeValue + operandCodeValue);
-                            break;
                         }
                     }
-
-
-
-
                 }
             }
-        }
-        System.out.println(Arrays.toString(objectCode.toArray()));
+       // System.out.println(Arrays.toString(objectCode.toArray()));
 
+        System.out.println("---------------------------------------------------TWO PASS ASSEMBLY-----------------------------------------------");
+        for(int i=0;i<instruction.size();i++)
+        System.out.println(String.format("%-10s %-10s %-10s %-10s %-10s",locationValue.get(i) , label.get(i) , instruction.get(i) , operand.get(i) , objectCode.get(i)));
+        System.out.println("--------------------------------------------------------------------------------------------------------------------");
+
+    }
+
+    public void closeAll() {
+        try {
+
+            fileInputStream.close();
+            inputStreamReader.close();
+            bufferedReader.close();
+            input.close();
+        }catch (IOException e)
+        {
+            System.out.println("error while file closing" + e.getMessage());
+        }
     }
 
 }
