@@ -8,6 +8,7 @@ public class ObjCode {
     private final String STA = "0C";
     private final String ADD = "18";
 
+    private File file;
     private FileInputStream fileInputStream = null;
     private InputStreamReader inputStreamReader = null;
     private BufferedReader bufferedReader = null;
@@ -43,7 +44,7 @@ public class ObjCode {
 
     public void readFile() throws IOException {
         try {
-            File file = new File("file.txt");
+            file = new File("file.txt");
             fileInputStream = new FileInputStream(file);
             inputStreamReader = new InputStreamReader(fileInputStream);
             bufferedReader = new BufferedReader(inputStreamReader);
@@ -92,8 +93,11 @@ public class ObjCode {
         int value;
         if (instruction.get(0).equals("START")) {
             String loc = operand.get(0);
-            value = Integer.parseInt(loc);  //value==2000
-            locationValue.add(Integer.toString(value));
+            value = Integer.parseInt(loc, 16);  //value==2000
+            System.out.println("decimal value" + value);
+            locationValue.add(Integer.toHexString(value));
+
+
         } else {
             throw new StartException("START instruction not found in the beginning. NO location can be identified");
 
@@ -101,8 +105,14 @@ public class ObjCode {
         int locationIncreament = 0;
         for (int i = 1; i < instruction.size(); i++) {
             //--------------------------FOR RESW WITH RANDOM NUMBER IN OPERAND(FUTURE MA IF I UPDATE THIS)-------------------------------
-//            if(instruction.get(i).equals("RESW"))
-//            {
+           if(instruction.get(i).equals("RESW")) {
+               int reswValue;
+               reswValue = Integer.parseInt(operand.get(i));
+               reswValue = reswValue * 3;
+               value = value + reswValue;
+               locationValue.add(Integer.toHexString(value).toUpperCase());
+
+
 //                String valueReswString;
 //                int valueResw;
 //                valueResw = Integer.parseInt(operand.get(i));
@@ -118,24 +128,33 @@ public class ObjCode {
 //                    locationValue.add(value /100 + Integer.toHexString(valueResw).toUpperCase());
 //                }
 //            }
-            if (value + locationIncreament <= value + 9) {
-                locationValue.add(Integer.toString(value + locationIncreament));
-            } else if (locationIncreament > 9 && locationIncreament <= 15) {
-                locationValue.add(value / 10 + Integer.toHexString(locationIncreament).toUpperCase());
-            } else {
+//            if (value + locationIncreament <= value + 9) {
+//                locationValue.add(Integer.toString(value + locationIncreament));
+//            } else if (locationIncreament > 9 && locationIncreament <= 15) {
+//                locationValue.add(value / 10 + Integer.toHexString(locationIncreament).toUpperCase());
+//            } else {
+//
+//                locationValue.add(value / 100 + Integer.toHexString(locationIncreament).toUpperCase());
+//            }
+//            locationIncreament = locationIncreament + 3;
 
-                locationValue.add(value / 100 + Integer.toHexString(locationIncreament).toUpperCase());
+           }else {
+               value = value + locationIncreament;
+               locationIncreament = 3;
+               System.out.println("loc inc value" + locationIncreament);
+               System.out.println("loop dec value" + value);
+               locationValue.add(Integer.toHexString(value).toUpperCase());
+           }
+           }
+
+            System.out.println("------------------------------------------ONE PASS ASSEMBLY----------------------------------------");
+            for (int i = 0; i < instruction.size(); i++) {
+                System.out.println(String.format("%-10s %-10s %-10s %-10s ", locationValue.get(i), label.get(i), instruction.get(i), operand.get(i)));
             }
-            locationIncreament = locationIncreament + 3;
+            System.out.println("-----------------------------------------------------------------------------------------------------");
+            //   System.out.println(Arrays.toString(locationValue.toArray()));
         }
 
-        System.out.println("------------------------------------------ONE PASS ASSEMBLY----------------------------------------");
-        for (int i = 0; i < instruction.size(); i++) {
-            System.out.println(String.format("%-10s %-10s %-10s %-10s ",locationValue.get(i) , label.get(i) , instruction.get(i) ,  operand.get(i)));
-        }
-        System.out.println("-----------------------------------------------------------------------------------------------------");
-     //   System.out.println(Arrays.toString(locationValue.toArray()));
-    }
 
     public void twoPassAssemble() {
 //        opCodeList.add(LDA);
