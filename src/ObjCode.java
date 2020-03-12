@@ -2,13 +2,14 @@ import java.io.*;
 import java.util.*;
 
 public class ObjCode {
-    private final String LDA = "00";
-    private final String MUL = "20";
-    private final String DIV = "24";
-    private final String STA = "0C";
-    private final String ADD = "18";
+//    private final String LDA = "00";
+//    private final String MUL = "20";
+//    private final String DIV = "24";
+//    private final String STA = "0C";
+//    private final String ADD = "18";
 
     private File file;
+    private File fileMnemonicFetch;
     private FileInputStream fileInputStream = null;
     private InputStreamReader inputStreamReader = null;
     private BufferedReader bufferedReader = null;
@@ -19,19 +20,18 @@ public class ObjCode {
     private ArrayList<String> instruction;
     private HashMap<String, String> locOperandValue;
     private ArrayList<String> operand;
+    private ArrayList<String> mnemonicName;
+    private ArrayList<String> mnemonicNameValue;
     private Scanner input;
-   // private ArrayList<String> opCodeList;
+    // private ArrayList<String> opCodeList;
     private ArrayList<String> objectCode;
     private String opCodeValue;
     private String operandCodeValue;
 
     public ObjCode() {
         this.mnenomicMapping = new HashMap<>();
-        this.mnenomicMapping.put("LDA", LDA);
-        this.mnenomicMapping.put("MUL", MUL);
-        this.mnenomicMapping.put("DIV", DIV);
-        this.mnenomicMapping.put("STA", STA);
-        this.mnenomicMapping.put("ADD", ADD);
+        this.mnemonicName = new ArrayList<>();
+        this.mnemonicNameValue = new ArrayList<>();
 
         this.locationValue = new ArrayList<>();
         this.label = new ArrayList<>();
@@ -39,7 +39,37 @@ public class ObjCode {
         this.operand = new ArrayList<>();
         this.objectCode = new ArrayList<>();
         this.locOperandValue = new HashMap<>();
-     //   this.opCodeList = new ArrayList<>();
+        //   this.opCodeList = new ArrayList<>();
+    }
+
+
+    public void readMnemonic(){
+        try {
+            int count=0;
+            fileMnemonicFetch = new File("mnemonic.txt");
+            Scanner readValues = new Scanner(fileMnemonicFetch);
+            while(readValues.hasNext())
+            {
+                String message = readValues.next();
+                if(count%2==0)
+                {
+                    this.mnemonicName.add(message);
+                }else{
+                    this.mnemonicNameValue.add(message);
+                }
+                count++;
+            }
+            for(int i = 0; i< mnemonicName.size();i++)
+            {
+                mnenomicMapping.put(mnemonicName.get(i) , mnemonicNameValue.get(i));
+            }
+        }catch(IOException e)
+        {
+            System.out.println("File not found");
+            System.out.println(e.getMessage());
+
+        }
+
     }
 
     public void readFile() throws IOException {
@@ -58,7 +88,7 @@ public class ObjCode {
             }
             int count = 0;
 
-            while (input.hasNext() == true) {
+            while (input.hasNext()) {
                 String message = input.next();
                 {
                     if (count % 3 == 0) {
@@ -94,7 +124,7 @@ public class ObjCode {
         if (instruction.get(0).equals("START")) {
             String loc = operand.get(0);
             value = Integer.parseInt(loc, 16);  //value==2000
-            System.out.println("decimal value" + value);
+            //System.out.println("decimal value" + value);
             locationValue.add(Integer.toHexString(value));
 
 
@@ -103,17 +133,33 @@ public class ObjCode {
 
         }
         int locationIncreament = 0;
+        int byteIncreament = 3;
         for (int i = 1; i < instruction.size(); i++) {
             //--------------------------FOR RESW WITH RANDOM NUMBER IN OPERAND(FUTURE MA IF I UPDATE THIS)-------------------------------
-           if(instruction.get(i).equals("RESW")) {
-               int reswValue;
-               reswValue = Integer.parseInt(operand.get(i));
-               reswValue = reswValue * 3;
-               value = value + reswValue;
-               locationValue.add(Integer.toHexString(value).toUpperCase());
+            if(instruction.get(i).equals("RESW")) {
+                int reswValue;
+                if(!instruction.get(i-1).equals("RESW"))
+                {
+                    value = value + 3;
+                    locationValue.add(Integer.toHexString(value).toUpperCase());
 
 
-//                String valueReswString;
+                }else {
+                    reswValue = Integer.parseInt(operand.get(i-1));
+                    reswValue = reswValue * 3;
+                    value = value + reswValue;
+                    locationValue.add(Integer.toHexString(value).toUpperCase());
+
+
+                }
+                if(!instruction.get(i+1).equals("RESW"))
+                {
+                    reswValue = Integer.parseInt(operand.get(i));
+                    reswValue = reswValue*3;
+                    value = value + reswValue;
+                    locationIncreament = 0;
+
+                }
 //                int valueResw;
 //                valueResw = Integer.parseInt(operand.get(i));
 //                valueResw = valueResw*3;
@@ -138,39 +184,72 @@ public class ObjCode {
 //            }
 //            locationIncreament = locationIncreament + 3;
 
-           }else {
-               value = value + locationIncreament;
-               locationIncreament = 3;
-               System.out.println("loc inc value" + locationIncreament);
-               System.out.println("loop dec value" + value);
-               locationValue.add(Integer.toHexString(value).toUpperCase());
-           }
-           }
+            }else if(instruction.get(i).equals("RESB")){
 
-            System.out.println("------------------------------------------ONE PASS ASSEMBLY----------------------------------------");
-            for (int i = 0; i < instruction.size(); i++) {
-                System.out.println(String.format("%-10s %-10s %-10s %-10s ", locationValue.get(i), label.get(i), instruction.get(i), operand.get(i)));
+
+                int resbValue = Integer.parseInt(operand.get(i));
+                // value = value + 3;
+                locationValue.add(Integer.toHexString(value).toUpperCase());
+                value = value + resbValue;
+                locationIncreament = 0;
+
+            }else if(instruction.get(i).equals("BYTE"))
+            {
+                value = value + byteIncreament;
+                locationValue.add(Integer.toHexString(value).toUpperCase());
+                String val = operand.get(i);
+
+                int k = 2;
+                // System.out.println(val.charAt(k));
+                while( val.charAt(k)!='\'')
+                {
+                    k++;
+                }
+                if(val.charAt(0) =='C')
+                {
+                    k = k-2;
+                    //System.out.println("val of k" + k);
+                    //  System.out.println(Integer.toHexString(value));
+                    value = value + k;
+                    // System.out.println("after adding" + Integer.toHexString(value));
+
+
+                }else if(val.charAt(0)=='X')
+                {
+                    k = k-2;
+                    k = k/2;
+                    value = value + k;
+
+
+                }
+                locationIncreament = 0;
             }
-            System.out.println("-----------------------------------------------------------------------------------------------------");
-            //   System.out.println(Arrays.toString(locationValue.toArray()));
+            else {
+                value = value + locationIncreament;
+                locationIncreament = 3;
+                locationValue.add(Integer.toHexString(value).toUpperCase());
+            }
         }
+
+        System.out.println("------------------------------------------ONE PASS ASSEMBLY----------------------------------------");
+        for (int i = 0; i < instruction.size(); i++) {
+            System.out.println(String.format("%-10s %-10s %-10s %-10s ", locationValue.get(i), label.get(i), instruction.get(i), operand.get(i)));
+        }
+        System.out.println("-----------------------------------------------------------------------------------------------------");
+        //   System.out.println(Arrays.toString(locationValue.toArray()));
+    }
 
 
     public void twoPassAssemble() {
-//        opCodeList.add(LDA);
-//        opCodeList.add(MUL);
-//        opCodeList.add(DIV);
-//        opCodeList.add(STA);
-//        opCodeList.add(ADD);
-       // System.out.println(Arrays.toString(opCodeList.toArray()));
 
         for (int i = 0; i < instruction.size(); i++) {
             locOperandValue.put(label.get(i), locationValue.get(i));
         }
-       // System.out.println((mnenomicMapping));
+
+        // System.out.println((mnenomicMapping));
 
         for (int i = 0; i < instruction.size(); i++) {
-            if (instruction.get(i).equals("START") || instruction.get(i).equals("RESW") || instruction.get(i).equals("END")) {
+            if (instruction.get(i).equals("START") || instruction.get(i).equals("RESW") || instruction.get(i).equals("END") || instruction.get(i).equals("RESB")){
                 opCodeValue = "-";
                 operandCodeValue = "-";
                 objectCode.add(opCodeValue + operandCodeValue);
@@ -178,15 +257,52 @@ public class ObjCode {
             }else if(instruction.get(i).equals("WORD"))
             {
                 int value = Integer.parseInt(operand.get(i));
-                if(value < 10)
-                    objectCode.add("000"+Integer.toHexString(value).toUpperCase());
+                if(value <= 15)
+                    objectCode.add("00000"+Integer.toHexString(value).toUpperCase());
                 else
-                    objectCode.add("00"+Integer.toHexString(value).toUpperCase());
+                    objectCode.add("0000"+Integer.toHexString(value).toUpperCase());
+            }else if(instruction.get(i).equals("RSUB"))
+            {
+                for(Map.Entry<String,String> RSUBCheck : mnenomicMapping.entrySet() )
+                {
+                    if(RSUBCheck.getKey().equals("RSUB"))
+                    {
+                        opCodeValue = RSUBCheck.getValue();
+                        operandCodeValue = "0000";
+                        objectCode.add(opCodeValue+operandCodeValue);
+                        break;
+                    }
+                }
+            }else if( instruction.get(i).equals("BYTE"))
+            {
+                String val = operand.get(i);
+                String objectCodeMessage = "";
+                String charEquivalent;
+                int k = 2;
+                // System.out.println(val.charAt(k));
+                if(val.charAt(k-2)=='X')
+                {
+                    while( val.charAt(k)!='\'')
+                    {
+                        objectCodeMessage += "" + val.charAt(k);
+
+                        k++;
+                    }
+                    objectCode.add(objectCodeMessage);
+                }else if(val.charAt(k-2)=='C') {
+                    while (val.charAt(k) != '\'') {
+
+                        objectCodeMessage += Integer.toHexString(val.charAt(k)).toUpperCase();
+
+                        k++;
+                    }
+                    objectCode.add(objectCodeMessage);
+                }
             }
             else {
                 int j = 1;
                 while (!operand.get(i).equals(label.get(j))) {
-                    if (j >= 11)
+                    if (j >= label.size())
                         break;
                     if (operand.get(i).equals(label.get(j))) {
                         break;
@@ -196,29 +312,28 @@ public class ObjCode {
                 }
                 for (Map.Entry<String, String> mnenomicValue : mnenomicMapping.entrySet())
                 {
-                        if(!instruction.get(i).equals(mnenomicValue.getKey())) {
-                            continue;
-                            }
-                        else {
-                            opCodeValue = mnenomicValue.getValue();
-                            operandCodeValue = locationValue.get(j);
-                            objectCode.add(opCodeValue + operandCodeValue);
-                        }
+                    if(!instruction.get(i).equals(mnenomicValue.getKey())) {
+                        continue;
+                    }
+                    else {
+                        opCodeValue = mnenomicValue.getValue();
+                        operandCodeValue = locationValue.get(j);
+                        objectCode.add(opCodeValue + operandCodeValue);
+                        break;
                     }
                 }
             }
-       // System.out.println(Arrays.toString(objectCode.toArray()));
+        }
+        // System.out.println(Arrays.toString(objectCode.toArray()));
 
         System.out.println("---------------------------------------------------TWO PASS ASSEMBLY-----------------------------------------------");
         for(int i=0;i<instruction.size();i++)
-        System.out.println(String.format("%-10s %-10s %-10s %-10s %-10s",locationValue.get(i) , label.get(i) , instruction.get(i) , operand.get(i) , objectCode.get(i)));
+            System.out.println(String.format("%-10s %-10s %-10s %-10s %-10s",locationValue.get(i) , label.get(i) , instruction.get(i) , operand.get(i) , objectCode.get(i)));
         System.out.println("--------------------------------------------------------------------------------------------------------------------");
 
     }
-
     public void closeAll() {
         try {
-
             fileInputStream.close();
             inputStreamReader.close();
             bufferedReader.close();
