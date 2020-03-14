@@ -1,4 +1,4 @@
-#SIC OBJECT CODE GENERATION
+#SIC OBJECT CODE GENERATION#
 
 Edit the **text.txt** and **mnemonic.txt** file to add and remove instructions,opcodes and symbols.
 

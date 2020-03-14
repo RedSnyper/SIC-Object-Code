@@ -2,7 +2,7 @@ public class StartException extends Exception {
 
     public StartException(String message)
     {
-        super(message);
+        System.out.println(message);
         System.exit(-1);
     }
 

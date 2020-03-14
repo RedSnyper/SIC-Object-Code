@@ -129,7 +129,7 @@ public class ObjCode {
 
 
         } else {
-            throw new StartException("START instruction not found in the beginning. NO location can be identified");
+            throw new StartException("START instruction not found in the beginning. No location can be identified for one pass assembly. Program closing....");
 
         }
         int locationIncreament = 0;
